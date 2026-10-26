@@ -52,6 +52,7 @@ const MAPS = {
     subtitle: "Average annual number of extreme fire weather days (1990-2009)",
     field: "FFDI", label: "Days", unit: "",
     breaks: [0, 1, 2, 3],
+    max: 4,
     colors: ["#fef0d9", "#fdcc8a", "#fc8d59", "#d7301f"]
   },
   "2": {
@@ -59,6 +60,7 @@ const MAPS = {
     subtitle: "Projected change in average annual number of extreme fire weather days (2040-2059)",
     field: "FFDI_CHG", label: "Change in days", unit: "",
     breaks: [0, .5, 1, 1.5],
+    max: 2,
     colors: ["#f2f0f7", "#cbc9e2", "#9e9ac8", "#6a51a3"]
   },
   "3": {
@@ -66,6 +68,7 @@ const MAPS = {
     subtitle: "Average annual rainfall (1990 - 2009)",
     field: "Ave_rain_Actual", label: "Average rainfall", unit: " mm",
     breaks: [700, 800, 900, 1000, 1100],
+    max: 1200,
     colors: ["#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"]
   },
   "4": {
@@ -81,6 +84,7 @@ const MAPS = {
     subtitle: "Projected change in average number of days above 35°C per year (2040-2059)",
     field: "HD_CHG", label: "Change in hot days", unit: "",
     breaks: [0, 4, 7, 10, 13],
+    max: 16,
     colors: ["#feebe2", "#fbb4b9", "#f768a1", "#c51b8a", "#7a0177"]
   },
   "6": {
@@ -88,6 +92,7 @@ const MAPS = {
     subtitle: "Average number of days above 35°C per year (1990-2009)",
     field: "HD", label: "Hot days", unit: "",
     breaks: [0, 3, 6, 9, 12],
+    max: 15,
     colors: ["#fee5d9", "#fcae91", "#fb6a4a", "#de2d26", "#a50f15"]
   },
   "7": {
@@ -103,6 +108,7 @@ const MAPS = {
     subtitle: "Average annual temperature (1990-2009)",
     field: "HistoricalAverageTemperature", label: "Average temperature", unit: " °C",
     breaks: [11.6, 13, 14, 15, 16, 17],
+    max: 19,
     colors: ["#2166ac", "#67a9cf", "#d1e5f0", "#fddbc7", "#ef8a62", "#b2182b"]
   }
 };
