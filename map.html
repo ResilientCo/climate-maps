@@ -158,7 +158,7 @@ if (!cfg) {
    };
   t.addTo(map);
 
-  const lg = L.control({ position: "bottomright" });
+  const lg = L.control({ position: "bottomleft" });
   lg.onAdd = () => {
     const d = L.DomUtil.create("div", "box legend");
     let h = `<strong>${esc(cfg.label)}</strong>`;
