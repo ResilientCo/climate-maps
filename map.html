@@ -10,6 +10,7 @@
   body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #fff; }
   .box { background: #fff; padding: 8px 10px; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
   .title-box { font-weight: 600; font-size: 14px; max-width: 260px; }
+  .leaflet-left .title-box { clear: none; }
   .subtitle { font-weight: 400; font-size: 12px; color: #555; margin-top: 3px; }
   .legend { font-size: 12px; line-height: 20px; }
   .legend strong { display: block; margin-bottom: 4px; }
@@ -109,7 +110,7 @@ const MAPS = {
 const id = new URLSearchParams(location.search).get("map") || "1";
 const cfg = MAPS[id];
 
-const map = L.map("map", { scrollWheelZoom: false }).setView([-33.65, 150.4], 10);
+const map = L.map("map", { scrollWheelZoom: false, zoomSnap: 0.25 }).setView([-33.65, 150.4], 10);
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
      maxZoom: 19
@@ -140,7 +141,7 @@ function colorFor(v) {
 if (!cfg) {
   showError(`There is no map number "${id}". Check the ?map= part of the link.`);
 } else {
-  const t = L.control({ position: "topright" });
+  const t = L.control({ position: "topleft" });
    t.onAdd = () => {
      const d = L.DomUtil.create("div", "box title-box");
      d.textContent = cfg.title;
@@ -185,6 +186,7 @@ if (!cfg) {
       }).addTo(map) : null;
 
       map.fitBounds((outline || layer).getBounds(), { padding: [10, 10] });
+      map.setZoom(map.getZoom() + 0.5, { animate: false });
     })
     .catch(e => showError(e.message));
 }
