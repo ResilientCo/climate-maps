@@ -73,7 +73,8 @@ const MAPS = {
     subtitle: "Projected change in average annual rainfall (2040 - 2059)",
     field: "PC_rain_CHG", label: "Change in rainfall", unit: "%",
     breaks: [-19, -18, -17, -16, -15],
-    colors: ["#f5e6d3", "#e0b98a", "#d9822b", "#a0522d", "#5c3317"]
+    max: -14,
+    colors: ["#5c3317", "#a0522d", "#d9822b", "#e0b98a", "#f5e6d3"]
   },
   "5": {
     title: "Change in hot days",
@@ -156,8 +157,7 @@ if (!cfg) {
     let h = `<strong>${esc(cfg.label)}</strong>`;
     cfg.breaks.forEach((b, i) => {
       const next = cfg.breaks[i + 1];
-      h += `<i style="background:${cfg.colors[i]}"></i>${num(b)}${next !== undefined ? " to " + num(next) : "+"}${esc(cfg.unit)}<br>`;
-    });
+   h += `<i style="background:${cfg.colors[i]}"></i>${num(b)}${next !== undefined ? " to " + num(next) : (cfg.max !== undefined ? " to " + num(cfg.max) : "+")}${esc(cfg.unit)}<br>`;    });
     d.innerHTML = h;
     return d;
   };
