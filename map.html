@@ -171,7 +171,7 @@ if (!cfg) {
       if (!mine.length) throw new Error(`No data found for the column "${cfg.field}". Check the spelling.`);
 
       const layer = L.geoJSON({ type: "FeatureCollection", features: mine }, {
-        style: f => ({ color: "#777", weight: 0.5, fillColor: colorFor(f.properties[cfg.field]), fillOpacity: 0.50 }),
+        style: f => ({ color: "#777", weight: 0.5, fillColor: colorFor(f.properties[cfg.field]), fillOpacity: 0.60 }),
         onEachFeature: (f, l) => {
           const v = f.properties[cfg.field];
           l.bindPopup(`<table class="popup-table"><tr><td>${esc(cfg.label)}</td><td>${has(v) ? num(v) + esc(cfg.unit) : "No data"}</td></tr></table>`);
