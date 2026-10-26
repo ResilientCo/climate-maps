@@ -10,6 +10,7 @@
   body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #fff; }
   .box { background: #fff; padding: 8px 10px; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
   .title-box { font-weight: 600; font-size: 14px; max-width: 260px; }
+  .subtitle { font-weight: 400; font-size: 12px; color: #555; margin-top: 3px; }
   .legend { font-size: 12px; line-height: 20px; }
   .legend strong { display: block; margin-bottom: 4px; }
   .legend i { display: inline-block; width: 14px; height: 14px; margin-right: 6px; vertical-align: -2px; border: 1px solid #888; }
@@ -46,52 +47,60 @@ const OUTLINE_FIELD = "LGA_NAME24";
 
 const MAPS = {
   "1": {
-    title: "Forest Fire Danger Index",
+    title: "Extreme fire weather days",
+    subtitle: "Average annual number of extreme fire weather days (1990-2009)",
     field: "FFDI", label: "FFDI", unit: "",
-    breaks: [0, 0.25, 0.5, 1, 2],
-    colors: ["#fff5eb", "#fdbe85", "#fd8d3c", "#e6550d", "#a63603"]
+    breaks: [0, 1, 2, 3],
+    colors: ["#fef0d9", "#fdcc8a", "#fc8d59", "#d7301f"]
   },
   "2": {
-    title: "Change in Forest Fire Danger Index",
+    title: "Change in extreme fire weather days",
+    subtitle: "Projected change in average annual number of extreme fire weather days (2040-2059)",
     field: "FFDI_CHG", label: "Change in FFDI", unit: "",
-    breaks: [0, 0.5, 0.75, 1, 1.5],
-    colors: ["#fff5eb", "#fdbe85", "#fd8d3c", "#e6550d", "#a63603"]
+    breaks: [0, .5, 1, 1.5],
+    colors: ["#f2f0f7", "#cbc9e2", "#9e9ac8", "#6a51a3"]
   },
   "3": {
     title: "Average annual rainfall",
+    subtitle: "Average annual rainfall (1990 - 2009)",
     field: "Ave_rain_Actual", label: "Average rainfall", unit: " mm",
     breaks: [700, 800, 900, 1000, 1100],
     colors: ["#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"]
   },
   "4": {
     title: "Change in rainfall (%)",
+    subtitle: "Projected change in average annual rainfall (2040 - 2059)",
     field: "PC_rain_CHG", label: "Change in rainfall", unit: "%",
     breaks: [-19, -18, -17, -16, -15],
-    colors: ["#8c510a", "#d8b365", "#f6e8c3", "#c7eae5", "#5ab4ac"]
+    colors: ["#f5e6d3", "#e0b98a", "#d9822b", "#a0522d", "#5c3317"]
   },
   "5": {
     title: "Change in hot days",
+    subtitle: "Projected change in average number of days above 35°C per year (2040-2059)"
     field: "HD_CHG", label: "Change in hot days", unit: " days",
-    breaks: [0, 4, 8, 12, 15],
-    colors: ["#fee5d9", "#fcae91", "#fb6a4a", "#de2d26", "#a50f15"]
+    breaks: [0, 4, 7, 10, 13],
+    colors: ["#feebe2", "#fbb4b9", "#f768a1", "#c51b8a", "#7a0177"]
   },
   "6": {
     title: "Hot days per year",
+    subtitle: "Average number of days above 35°C per year (1990-2009)",
     field: "HD", label: "Hot days", unit: " days",
-    breaks: [0, 2, 5, 10, 15],
+    breaks: [0, 3, 6, 9, 12],
     colors: ["#fee5d9", "#fcae91", "#fb6a4a", "#de2d26", "#a50f15"]
   },
   "7": {
     title: "Change in average temperature",
+    subtitle: "Projected change in annual average temperature (2040-2059)",
     field: "AT_CHG_Actual", label: "Temperature change", unit: " °C",
-    breaks: [1.69, 1.72, 1.75, 1.78, 1.81],
-    colors: ["#fee5d9", "#fcae91", "#fb6a4a", "#de2d26", "#a50f15"]
+    breaks: [1.7],
+    colors: ["#ffff00"]
   },
   "8": {
     title: "Historical average temperature",
+    subtitle: "Average annual temperature (1990-2009)",
     field: "HistoricalAverageTemperature", label: "Average temperature", unit: " °C",
-    breaks: [11, 13, 14, 15, 17],
-    colors: ["#ffffb2", "#fecc5c", "#fd8d3c", "#f03b20", "#bd0026"]
+    breaks: [11.6, 13, 14, 15, 16, 17],
+    colors: ["#2166ac", "#67a9cf", "#d1e5f0", "#fddbc7", "#ef8a62", "#b2182b"]
   }
 };
 
@@ -132,7 +141,12 @@ if (!cfg) {
   showError(`There is no map number "${id}". Check the ?map= part of the link.`);
 } else {
   const t = L.control({ position: "topright" });
-  t.onAdd = () => { const d = L.DomUtil.create("div", "box title-box"); d.textContent = cfg.title; return d; };
+   t.onAdd = () => {
+     const d = L.DomUtil.create("div", "box title-box");
+     d.textContent = cfg.title;
+     if (cfg.subtitle) { const s = document.createElement("div"); s.className = "subtitle"; s.textContent = cfg.subtitle; d.appendChild(s); }
+     return d;
+   };
   t.addTo(map);
 
   const lg = L.control({ position: "bottomright" });
@@ -156,7 +170,7 @@ if (!cfg) {
       if (!mine.length) throw new Error(`No data found for the column "${cfg.field}". Check the spelling.`);
 
       const layer = L.geoJSON({ type: "FeatureCollection", features: mine }, {
-        style: f => ({ color: "#777", weight: 0.5, fillColor: colorFor(f.properties[cfg.field]), fillOpacity: 0.75 }),
+        style: f => ({ color: "#777", weight: 0.5, fillColor: colorFor(f.properties[cfg.field]), fillOpacity: 0.50 }),
         onEachFeature: (f, l) => {
           const v = f.properties[cfg.field];
           l.bindPopup(`<table class="popup-table"><tr><td>${esc(cfg.label)}</td><td>${has(v) ? num(v) + esc(cfg.unit) : "No data"}</td></tr></table>`);
