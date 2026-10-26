@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blue Mountains Climate Maps</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  html, body, #map { height: 100%; margin: 0; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #fff; }
+  .box { background: #fff; padding: 8px 10px; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+  .title-box { font-weight: 600; font-size: 14px; max-width: 260px; }
+  .legend { font-size: 12px; line-height: 20px; }
+  .legend strong { display: block; margin-bottom: 4px; }
+  .legend i { display: inline-block; width: 14px; height: 14px; margin-right: 6px; vertical-align: -2px; border: 1px solid #888; }
+  .popup-table { border-collapse: collapse; font-size: 13px; }
+  .popup-table td { padding: 2px 6px 2px 0; vertical-align: top; }
+  .popup-table td:first-child { font-weight: 600; color: #444; }
+  .error { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;
+           background: #fff3f3; border: 1px solid #d33; color: #900; padding: 12px 16px; border-radius: 4px; max-width: 80%; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* =====================================================================
+   SETTINGS: the only part you need to edit.
+
+   The link for each map is  map.html?map=1  through  map.html?map=8
+
+   DATA_FILE     : your GeoJSON file (all 9 layers are in this one file)
+   OUTLINE_FIELD : column that only the LGA boundary has; it is drawn as
+                   an outline on every map
+
+   For each map:
+     title       : text in the top corner of the map
+     field       : the column this map shows (must match the data exactly)
+     label       : what the value is called in the popup and legend
+     unit        : added after the number, e.g. " mm" or " °C" (or "")
+     breaks      : the lowest value of each colour band
+     colors      : one colour per break, lightest to darkest
+   ===================================================================== */
+const DATA_FILE = "data/hazards.geojson";
+const OUTLINE_FIELD = "LGA_NAME24";
+
+const MAPS = {
+  "1": {
+    title: "Forest Fire Danger Index",
+    field: "FFDI", label: "FFDI", unit: "",
+    breaks: [0, 0.25, 0.5, 1, 2],
+    colors: ["#fff5eb", "#fdbe85", "#fd8d3c", "#e6550d", "#a63603"]
+  },
+  "2": {
+    title: "Change in Forest Fire Danger Index",
+    field: "FFDI_CHG", label: "Change in FFDI", unit: "",
+    breaks: [0, 0.5, 0.75, 1, 1.5],
+    colors: ["#fff5eb", "#fdbe85", "#fd8d3c", "#e6550d", "#a63603"]
+  },
+  "3": {
+    title: "Average annual rainfall",
+    field: "Ave_rain_Actual", label: "Average rainfall", unit: " mm",
+    breaks: [700, 800, 900, 1000, 1100],
+    colors: ["#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c"]
+  },
+  "4": {
+    title: "Change in rainfall (%)",
+    field: "PC_rain_CHG", label: "Change in rainfall", unit: "%",
+    breaks: [-19, -18, -17, -16, -15],
+    colors: ["#8c510a", "#d8b365", "#f6e8c3", "#c7eae5", "#5ab4ac"]
+  },
+  "5": {
+    title: "Change in hot days",
+    field: "HD_CHG", label: "Change in hot days", unit: " days",
+    breaks: [0, 4, 8, 12, 15],
+    colors: ["#fee5d9", "#fcae91", "#fb6a4a", "#de2d26", "#a50f15"]
+  },
+  "6": {
+    title: "Hot days per year",
+    field: "HD", label: "Hot days", unit: " days",
+    breaks: [0, 2, 5, 10, 15],
+    colors: ["#fee5d9", "#fcae91", "#fb6a4a", "#de2d26", "#a50f15"]
+  },
+  "7": {
+    title: "Change in average temperature",
+    field: "AT_CHG_Actual", label: "Temperature change", unit: " °C",
+    breaks: [1.69, 1.72, 1.75, 1.78, 1.81],
+    colors: ["#fee5d9", "#fcae91", "#fb6a4a", "#de2d26", "#a50f15"]
+  },
+  "8": {
+    title: "Historical average temperature",
+    field: "HistoricalAverageTemperature", label: "Average temperature", unit: " °C",
+    breaks: [11, 13, 14, 15, 17],
+    colors: ["#ffffb2", "#fecc5c", "#fd8d3c", "#f03b20", "#bd0026"]
+  }
+};
+
+/* ====================== No need to edit below here ====================== */
+
+const id = new URLSearchParams(location.search).get("map") || "1";
+const cfg = MAPS[id];
+
+const map = L.map("map", { scrollWheelZoom: false }).setView([-33.65, 150.4], 10);
+L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>',
+  subdomains: "abcd", maxZoom: 20
+}).addTo(map);
+/* Scroll-to-zoom only after the reader clicks the map, so the Wix page still scrolls normally */
+map.on("click", () => map.scrollWheelZoom.enable());
+map.getContainer().addEventListener("mouseleave", () => map.scrollWheelZoom.disable());
+
+function showError(msg) {
+  const d = document.createElement("div");
+  d.className = "error"; d.textContent = msg;
+  document.body.appendChild(d);
+}
+function esc(x) {
+  return String(x).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function num(v) {
+  return Number(v).toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
+function has(v) { return v !== null && v !== undefined && v !== "" && !isNaN(Number(v)); }
+function colorFor(v) {
+  if (!has(v)) return "#cccccc";
+  let c = cfg.colors[0];
+  cfg.breaks.forEach((b, i) => { if (Number(v) >= b) c = cfg.colors[i]; });
+  return c;
+}
+
+if (!cfg) {
+  showError(`There is no map number "${id}". Check the ?map= part of the link.`);
+} else {
+  const t = L.control({ position: "topright" });
+  t.onAdd = () => { const d = L.DomUtil.create("div", "box title-box"); d.textContent = cfg.title; return d; };
+  t.addTo(map);
+
+  const lg = L.control({ position: "bottomright" });
+  lg.onAdd = () => {
+    const d = L.DomUtil.create("div", "box legend");
+    let h = `<strong>${esc(cfg.label)}</strong>`;
+    cfg.breaks.forEach((b, i) => {
+      const next = cfg.breaks[i + 1];
+      h += `<i style="background:${cfg.colors[i]}"></i>${num(b)}${next !== undefined ? " to " + num(next) : "+"}${esc(cfg.unit)}<br>`;
+    });
+    d.innerHTML = h;
+    return d;
+  };
+  lg.addTo(map);
+
+  fetch(DATA_FILE)
+    .then(r => { if (!r.ok) throw new Error(`Could not find ${DATA_FILE}. Check the file name and folder.`); return r.json(); })
+    .then(data => {
+      const all = data.features || [];
+      const mine = all.filter(f => f.properties && cfg.field in f.properties);
+      if (!mine.length) throw new Error(`No data found for the column "${cfg.field}". Check the spelling.`);
+
+      const layer = L.geoJSON({ type: "FeatureCollection", features: mine }, {
+        style: f => ({ color: "#777", weight: 0.5, fillColor: colorFor(f.properties[cfg.field]), fillOpacity: 0.75 }),
+        onEachFeature: (f, l) => {
+          const v = f.properties[cfg.field];
+          l.bindPopup(`<table class="popup-table"><tr><td>${esc(cfg.label)}</td><td>${has(v) ? num(v) + esc(cfg.unit) : "No data"}</td></tr></table>`);
+          l.on("mouseover", () => { l.setStyle({ weight: 2.5, color: "#000" }); l.bringToFront(); });
+          l.on("mouseout", () => { layer.resetStyle(l); if (outline) outline.bringToFront(); });
+        }
+      }).addTo(map);
+
+      const lga = all.filter(f => f.properties && OUTLINE_FIELD in f.properties);
+      const outline = lga.length ? L.geoJSON({ type: "FeatureCollection", features: lga }, {
+        style: { color: "#222", weight: 2.5, fill: false }, interactive: false
+      }).addTo(map) : null;
+
+      map.fitBounds((outline || layer).getBounds(), { padding: [10, 10] });
+    })
+    .catch(e => showError(e.message));
+}
+</script>
+</body>
+</html>
